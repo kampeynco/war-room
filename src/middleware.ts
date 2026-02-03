@@ -2,20 +2,23 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Routes that don't require authentication
-const PUBLIC_ROUTES = ["/login"];
+// Homepage (/) is the login page - always public
+// All other routes require authentication
+const PUBLIC_ROUTES = ["/"];
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    // Allow public routes
-    if (PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
+    // Allow public routes (exact match for root)
+    if (pathname === "/" || PUBLIC_ROUTES.some((route) => route !== "/" && pathname.startsWith(route))) {
         return NextResponse.next();
     }
 
     // Check for Supabase auth cookie
-    const supabaseUrl = process.env.SBASE_URL;
-    const supabaseAnonKey = process.env.SBASE_ANON_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+        || process.env.SBASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        || process.env.SBASE_ANON_KEY;
 
     // If Supabase is not configured, allow access (development mode)
     if (!supabaseUrl || !supabaseAnonKey) {
@@ -23,13 +26,14 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
-    // Get auth token from cookies
+    // Get auth token from cookies - check various Supabase cookie formats
+    const projectRef = new URL(supabaseUrl).hostname.split('.')[0];
     const authCookie = request.cookies.get("sb-access-token")?.value
-        || request.cookies.get(`sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token`)?.value;
+        || request.cookies.get(`sb-${projectRef}-auth-token`)?.value;
 
     if (!authCookie) {
-        // No auth cookie - redirect to login
-        const loginUrl = new URL("/login", request.url);
+        // No auth cookie - redirect to login (homepage)
+        const loginUrl = new URL("/", request.url);
         loginUrl.searchParams.set("redirect", pathname);
         return NextResponse.redirect(loginUrl);
     }
@@ -40,7 +44,7 @@ export async function middleware(request: NextRequest) {
         const accessToken = Array.isArray(tokenData) ? tokenData[0] : tokenData?.access_token;
 
         if (!accessToken) {
-            const loginUrl = new URL("/login", request.url);
+            const loginUrl = new URL("/", request.url);
             return NextResponse.redirect(loginUrl);
         }
 
@@ -52,7 +56,7 @@ export async function middleware(request: NextRequest) {
         const { data: { user }, error } = await supabase.auth.getUser(accessToken);
 
         if (error || !user) {
-            const loginUrl = new URL("/login", request.url);
+            const loginUrl = new URL("/", request.url);
             return NextResponse.redirect(loginUrl);
         }
 
@@ -60,7 +64,7 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next();
     } catch {
         // Invalid cookie format - redirect to login
-        const loginUrl = new URL("/login", request.url);
+        const loginUrl = new URL("/", request.url);
         return NextResponse.redirect(loginUrl);
     }
 }
@@ -72,7 +76,7 @@ export const config = {
          * - _next/static (static files)
          * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
-         * - public folder
+         * - public folder assets
          */
         "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
     ],

@@ -6,8 +6,8 @@ import { CollapsibleSidebar } from "./CollapsibleSidebar";
 export function SidebarWrapper() {
     const pathname = usePathname();
 
-    // Hide sidebar on login page
-    if (pathname === "/login") {
+    // Hide sidebar on homepage (login page)
+    if (pathname === "/") {
         return null;
     }
 

@@ -55,7 +55,7 @@ export function CollapsibleSidebar() {
 
             <div className="mt-auto pb-4 flex flex-col items-center">
                 <Link
-                    href="/login"
+                    href="/"
                     className="sidebar-link justify-center px-2 text-muted hover:text-red-400"
                     title="Sign out"
                 >
