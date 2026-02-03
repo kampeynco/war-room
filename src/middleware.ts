@@ -3,7 +3,8 @@ import type { NextRequest } from "next/server";
 
 // Homepage (/) is the login page - always public
 // /auth/callback handles magic link tokens
-const PUBLIC_ROUTES = ["/", "/auth/callback"];
+// /profile/setup is for first-time user onboarding
+const PUBLIC_ROUTES = ["/", "/auth/callback", "/profile/setup"];
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;

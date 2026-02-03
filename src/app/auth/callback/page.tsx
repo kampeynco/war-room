@@ -5,10 +5,35 @@ import { useRouter } from "next/navigation";
 import { Loader2, AlertCircle } from "lucide-react";
 import { getSupabaseClient } from "@/lib/supabase/client";
 
+async function checkOnboardingStatus(supabase: ReturnType<typeof getSupabaseClient>, userId: string): Promise<boolean> {
+    const { data: profile } = await supabase
+        .from("profiles")
+        .select("onboarding_completed")
+        .eq("id", userId)
+        .single();
+
+    return profile?.onboarding_completed === true;
+}
+
 function AuthCallbackContent() {
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
     const [debug, setDebug] = useState<string>("");
+
+    const redirectAfterAuth = async (supabase: ReturnType<typeof getSupabaseClient>) => {
+        // Check if user has completed onboarding
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            const onboardingCompleted = await checkOnboardingStatus(supabase, user.id);
+            if (onboardingCompleted) {
+                router.push("/dashboard");
+            } else {
+                router.push("/profile/setup");
+            }
+        } else {
+            router.push("/dashboard");
+        }
+    };
 
     useEffect(() => {
         const handleCallback = async () => {
@@ -39,7 +64,9 @@ function AuthCallbackContent() {
                             return;
                         }
 
-                        router.push("/dashboard");
+                        // Small delay to allow cookies to settle
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        await redirectAfterAuth(supabase);
                         return;
                     }
                 }
@@ -60,7 +87,7 @@ function AuthCallbackContent() {
                     if (data.session) {
                         // Small delay to allow cookies to settle
                         await new Promise(resolve => setTimeout(resolve, 500));
-                        router.push("/dashboard");
+                        await redirectAfterAuth(supabase);
                         return;
                     }
                 }
@@ -71,7 +98,7 @@ function AuthCallbackContent() {
 
                 const { data: { session } } = await supabase.auth.getSession();
                 if (session) {
-                    router.push("/dashboard");
+                    await redirectAfterAuth(supabase);
                     return;
                 }
 
@@ -108,7 +135,6 @@ function AuthCallbackContent() {
             <div className="card max-w-md w-full text-center">
                 <Loader2 className="w-8 h-8 text-cta animate-spin mx-auto" />
                 <p className="text-muted mt-4">Signing you in...</p>
-                {debug && <p className="text-xs text-muted/50 mt-2 break-all">{debug}</p>}
             </div>
         </div>
     );
