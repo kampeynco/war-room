@@ -2,11 +2,10 @@ import Link from "next/link";
 import { FileText, ChevronRight } from "lucide-react";
 import { listMarkdownDocs, type DocRef } from "@/lib/fs-docs";
 import { WorkspaceDropdown } from "@/app/components/WorkspaceDropdown";
-import path from "path";
+import { ORGANIZESD_DIR } from "@/lib/paths";
 
 export default async function OrganizeSDDocsPage() {
-    const docsDir = path.join(process.cwd(), "../organizesd/docs");
-    const docs = await listMarkdownDocs(docsDir);
+    const docs = await listMarkdownDocs(ORGANIZESD_DIR);
     const title = "Organize SD Documents";
     const docsBasePath = "/organizesd/docs";
 

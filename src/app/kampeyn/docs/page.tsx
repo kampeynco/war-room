@@ -2,11 +2,10 @@ import Link from "next/link";
 import { FileText, ChevronRight } from "lucide-react";
 import { listMarkdownDocs, type DocRef } from "@/lib/fs-docs";
 import { WorkspaceDropdown } from "@/app/components/WorkspaceDropdown";
-import path from "path";
+import { KAMPEYN_DOCS_DIR } from "@/lib/paths";
 
 export default async function KampeynDocsPage() {
-    const docsDir = path.join(process.cwd(), "../kampeyn/docs");
-    const docs = await listMarkdownDocs(docsDir);
+    const docs = await listMarkdownDocs(KAMPEYN_DOCS_DIR);
     const title = "Kampeyn Documents";
     const docsBasePath = "/kampeyn/docs";
 
