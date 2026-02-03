@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
 import { LayoutDashboard, Users, Zap } from "lucide-react";
-import { CollapsibleSidebar } from "./components/CollapsibleSidebar";
+import { SidebarWrapper } from "./components/SidebarWrapper";
 
 export const metadata: Metadata = {
   title: "Kampeyn War Room",
@@ -24,8 +24,8 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <div className="flex min-h-screen">
-          {/* Collapsible Sidebar */}
-          <CollapsibleSidebar />
+          {/* Sidebar - hidden on login page */}
+          <SidebarWrapper />
 
           {/* Mobile Header */}
           <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[var(--color-primary)] border-b border-[var(--color-border)] px-4 py-3">

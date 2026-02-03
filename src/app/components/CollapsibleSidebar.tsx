@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CheckSquare, MessageSquare, FileText, KeyRound } from "lucide-react";
+import { CheckSquare, MessageSquare, FileText, LogOut } from "lucide-react";
 import { AgentStatusWidget } from "./AgentStatusWidget";
 
 const navItems = [
@@ -56,10 +56,10 @@ export function CollapsibleSidebar() {
             <div className="mt-auto pb-4 flex flex-col items-center">
                 <Link
                     href="/login"
-                    className="sidebar-link justify-center px-2"
-                    title="Magic link login"
+                    className="sidebar-link justify-center px-2 text-muted hover:text-red-400"
+                    title="Sign out"
                 >
-                    <KeyRound className="w-5 h-5" />
+                    <LogOut className="w-5 h-5" />
                 </Link>
             </div>
         </aside>

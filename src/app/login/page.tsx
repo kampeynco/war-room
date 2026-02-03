@@ -77,10 +77,6 @@ export default function LoginPage() {
             {message}
           </div>
         )}
-
-        <div className="mt-6 text-sm text-muted">
-          <Link href="/" className="hover:underline">← Back to dashboard</Link>
-        </div>
       </div>
     </div>
   );
