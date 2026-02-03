@@ -6,8 +6,8 @@ import { CollapsibleSidebar } from "./CollapsibleSidebar";
 export function SidebarWrapper() {
     const pathname = usePathname();
 
-    // Hide sidebar on homepage (login page)
-    if (pathname === "/") {
+    // Hide sidebar on homepage (login page) and auth routes
+    if (pathname === "/" || pathname.startsWith("/auth")) {
         return null;
     }
 
