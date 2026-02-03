@@ -76,10 +76,6 @@ export default async function WarRoomDashboard({
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <div className="card px-4 py-3">
-            <div className="text-xs text-muted mb-2">Agent status</div>
-            <AgentStatusWidget compact={false} />
-          </div>
           <WorkspaceDropdown />
         </div>
       </header>
