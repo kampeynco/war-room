@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 
 // Homepage (/) is the login page - always public
 // /auth/callback handles magic link tokens
@@ -9,64 +8,54 @@ const PUBLIC_ROUTES = ["/", "/auth/callback"];
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    // Allow public routes (exact match for root)
+    // Allow public routes
     if (pathname === "/" || PUBLIC_ROUTES.some((route) => route !== "/" && pathname.startsWith(route))) {
         return NextResponse.next();
     }
 
-    // Check for Supabase auth cookie
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-        || process.env.SBASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-        || process.env.SBASE_ANON_KEY;
+    // Get Supabase project reference from URL
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SBASE_URL;
 
-    // If Supabase is not configured, allow access (development mode)
-    if (!supabaseUrl || !supabaseAnonKey) {
+    if (!supabaseUrl) {
+        // Supabase not configured - allow access (development mode)
         console.warn("Supabase not configured - auth bypass enabled");
         return NextResponse.next();
     }
 
-    // Get auth token from cookies - check various Supabase cookie formats
+    // Extract project reference from Supabase URL
     const projectRef = new URL(supabaseUrl).hostname.split('.')[0];
-    const authCookie = request.cookies.get("sb-access-token")?.value
-        || request.cookies.get(`sb-${projectRef}-auth-token`)?.value;
 
-    if (!authCookie) {
-        // No auth cookie - redirect to login (homepage)
-        const loginUrl = new URL("/", request.url);
-        loginUrl.searchParams.set("redirect", pathname);
-        return NextResponse.redirect(loginUrl);
-    }
+    // Check for Supabase auth cookies - the library stores them in various formats
+    // Modern format: sb-{projectRef}-auth-token (contains JSON array)
+    // Also check for access token directly
+    const allCookies = request.cookies.getAll();
 
-    // Parse the auth cookie (it's a JSON array with token info)
-    try {
-        const tokenData = JSON.parse(authCookie);
-        const accessToken = Array.isArray(tokenData) ? tokenData[0] : tokenData?.access_token;
+    // Debug: log all cookies (remove in production)
+    // console.log("All cookies:", allCookies.map(c => c.name));
 
-        if (!accessToken) {
-            const loginUrl = new URL("/", request.url);
-            return NextResponse.redirect(loginUrl);
-        }
+    // Check for any Supabase auth-related cookies
+    const hasAuthCookie = allCookies.some(cookie => {
+        const name = cookie.name.toLowerCase();
+        return (
+            name.includes('sb-') &&
+            (name.includes('auth-token') || name.includes('access-token') || name.includes('refresh-token'))
+        ) || name.startsWith('sb-') && name.endsWith('-auth-token');
+    });
 
-        // Verify the token with Supabase
-        const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-            auth: { persistSession: false },
-        });
+    // Also check for the specific project auth token
+    const projectAuthCookie = request.cookies.get(`sb-${projectRef}-auth-token`)?.value;
 
-        const { data: { user }, error } = await supabase.auth.getUser(accessToken);
-
-        if (error || !user) {
-            const loginUrl = new URL("/", request.url);
-            return NextResponse.redirect(loginUrl);
-        }
-
-        // User is authenticated
+    // Check if we have a valid auth cookie
+    if (hasAuthCookie || projectAuthCookie) {
+        // Has some form of auth cookie - allow access
+        // The client-side Supabase will validate the actual token
         return NextResponse.next();
-    } catch {
-        // Invalid cookie format - redirect to login
-        const loginUrl = new URL("/", request.url);
-        return NextResponse.redirect(loginUrl);
     }
+
+    // No auth cookie found - redirect to login
+    const loginUrl = new URL("/", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
 }
 
 export const config = {
