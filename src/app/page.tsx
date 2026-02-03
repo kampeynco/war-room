@@ -13,35 +13,32 @@ export default function LoginPage() {
 
   // Handle auth callback from magic link
   useEffect(() => {
-    const handleAuthCallback = async () => {
-      // Check if we have auth tokens in the URL (magic link callback)
-      const hash = window.location.hash;
-      if (hash && (hash.includes("access_token") || hash.includes("refresh_token"))) {
-        setStatus("authenticating");
-        setMessage("Signing you in...");
+    const supabase = getSupabaseClient();
 
-        try {
-          const supabase = getSupabaseClient();
-          const { data, error } = await supabase.auth.getSession();
+    // Check if we have auth tokens in the URL (magic link callback)
+    const hash = window.location.hash;
+    if (hash && (hash.includes("access_token") || hash.includes("refresh_token"))) {
+      setStatus("authenticating");
+      setMessage("Signing you in...");
+    }
 
-          if (error) {
-            setStatus("error");
-            setMessage(error.message);
-            return;
-          }
-
-          if (data.session) {
-            // Successfully authenticated - redirect to dashboard
-            router.push("/dashboard");
-          }
-        } catch (err: any) {
-          setStatus("error");
-          setMessage(err?.message || "Authentication failed");
-        }
+    // Listen for auth state changes - this handles the token exchange
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        // Successfully authenticated - redirect to dashboard
+        router.push("/dashboard");
+      } else if (event === "TOKEN_REFRESHED" && session) {
+        router.push("/dashboard");
+      } else if (event === "SIGNED_OUT") {
+        setStatus("idle");
+        setMessage("");
       }
-    };
+    });
 
-    handleAuthCallback();
+    // Cleanup subscription
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
