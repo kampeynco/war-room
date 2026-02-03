@@ -27,28 +27,28 @@ export async function middleware(request: NextRequest) {
 
     // Check for Supabase auth cookies - the library stores them in various formats
     // Modern format: sb-{projectRef}-auth-token (contains JSON array)
-    // Also check for access token directly
+    // Legacy/Alternative: supabase-auth-token
     const allCookies = request.cookies.getAll();
-
-    // Debug: log all cookies (remove in production)
-    // console.log("All cookies:", allCookies.map(c => c.name));
 
     // Check for any Supabase auth-related cookies
     const hasAuthCookie = allCookies.some(cookie => {
         const name = cookie.name.toLowerCase();
         return (
-            name.includes('sb-') &&
-            (name.includes('auth-token') || name.includes('access-token') || name.includes('refresh-token'))
-        ) || name.startsWith('sb-') && name.endsWith('-auth-token');
+            (name.includes('sb-') && (name.includes('auth-token') || name.includes('access-token'))) ||
+            name.includes('supabase-auth-token') ||
+            name === 'auth-token'
+        );
     });
 
     // Also check for the specific project auth token
     const projectAuthCookie = request.cookies.get(`sb-${projectRef}-auth-token`)?.value;
 
+    // Extra fallback: check if we are in the middle of a code exchange (PKCE)
+    const hasCode = request.nextUrl.searchParams.has('code');
+
     // Check if we have a valid auth cookie
-    if (hasAuthCookie || projectAuthCookie) {
-        // Has some form of auth cookie - allow access
-        // The client-side Supabase will validate the actual token
+    if (hasAuthCookie || projectAuthCookie || hasCode) {
+        // Has some form of auth cookie or code - allow access
         return NextResponse.next();
     }
 

@@ -58,6 +58,8 @@ function AuthCallbackContent() {
                     }
 
                     if (data.session) {
+                        // Small delay to allow cookies to settle
+                        await new Promise(resolve => setTimeout(resolve, 500));
                         router.push("/dashboard");
                         return;
                     }
@@ -65,7 +67,7 @@ function AuthCallbackContent() {
 
                 // Method 3: Let Supabase handle it automatically via onAuthStateChange
                 // Wait a moment for Supabase to process tokens
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 1500));
 
                 const { data: { session } } = await supabase.auth.getSession();
                 if (session) {
