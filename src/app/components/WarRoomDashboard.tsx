@@ -21,6 +21,7 @@ import type { ProjectKey } from "@/lib/db/warroom";
 import { AddTaskModal } from "./AddTaskModal";
 import { Timeline, type TimelineItem } from "./Timeline";
 import { WorkspaceDropdown } from "./WorkspaceDropdown";
+import { AgentStatusWidget } from "./AgentStatusWidget";
 
 const STATUS_CONFIG = {
   todo: { label: "To Do", icon: CircleDot, color: "text-muted" },
@@ -67,14 +68,20 @@ export default async function WarRoomDashboard({
   return (
     <div className="space-y-8">
       {/* Header with workspace dropdown */}
-      <header className="flex items-start justify-between gap-4">
+      <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-heading text-3xl">{title}</h1>
           <p className="text-muted mt-2">
             Live war room dashboard with tasks, notes, activity log, and docs.
           </p>
         </div>
-        <WorkspaceDropdown />
+        <div className="flex items-center gap-4">
+          <div className="card px-4 py-3">
+            <div className="text-xs text-muted mb-2">Agent status</div>
+            <AgentStatusWidget compact={false} />
+          </div>
+          <WorkspaceDropdown />
+        </div>
       </header>
 
       {/* Two-column layout: Kanban left, Activity right */}
