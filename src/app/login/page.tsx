@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { KeyRound } from "lucide-react";
 import { getSupabaseClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
@@ -38,7 +39,15 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
       <div className="card max-w-md w-full">
-        <h1 className="text-heading text-2xl">Sign in</h1>
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-[rgba(34,197,94,0.15)]">
+            <KeyRound className="w-4 h-4 text-cta" />
+          </div>
+          <div>
+            <div className="text-xs text-muted">War Room Access</div>
+            <h1 className="text-heading text-2xl">Sign in</h1>
+          </div>
+        </div>
         <p className="text-muted mt-2">Use your email to receive a magic link.</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
