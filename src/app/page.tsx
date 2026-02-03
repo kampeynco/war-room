@@ -1,13 +1,48 @@
 "use client";
 
-import { useState } from "react";
-import { KeyRound } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { KeyRound, Loader2 } from "lucide-react";
 import { getSupabaseClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error" | "authenticating">("idle");
   const [message, setMessage] = useState("");
+
+  // Handle auth callback from magic link
+  useEffect(() => {
+    const handleAuthCallback = async () => {
+      // Check if we have auth tokens in the URL (magic link callback)
+      const hash = window.location.hash;
+      if (hash && (hash.includes("access_token") || hash.includes("refresh_token"))) {
+        setStatus("authenticating");
+        setMessage("Signing you in...");
+
+        try {
+          const supabase = getSupabaseClient();
+          const { data, error } = await supabase.auth.getSession();
+
+          if (error) {
+            setStatus("error");
+            setMessage(error.message);
+            return;
+          }
+
+          if (data.session) {
+            // Successfully authenticated - redirect to dashboard
+            router.push("/dashboard");
+          }
+        } catch (err: any) {
+          setStatus("error");
+          setMessage(err?.message || "Authentication failed");
+        }
+      }
+    };
+
+    handleAuthCallback();
+  }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -33,6 +68,18 @@ export default function LoginPage() {
       setStatus("error");
       setMessage(err?.message || "Failed to send magic link.");
     }
+  }
+
+  // Show loading spinner when authenticating
+  if (status === "authenticating") {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="card max-w-md w-full text-center">
+          <Loader2 className="w-8 h-8 text-cta animate-spin mx-auto" />
+          <p className="text-muted mt-4">{message || "Signing you in..."}</p>
+        </div>
+      </div>
+    );
   }
 
   return (
