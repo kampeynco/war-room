@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2, AlertCircle } from "lucide-react";
 import { getSupabaseClient } from "@/lib/supabase/client";
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
     const router = useRouter();
-    const searchParams = useSearchParams();
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -37,8 +36,7 @@ export default function AuthCallbackPage() {
                         }
 
                         // Redirect to dashboard
-                        const redirectTo = searchParams.get("redirect") || "/dashboard";
-                        router.push(redirectTo);
+                        router.push("/dashboard");
                         return;
                     }
                 }
@@ -58,7 +56,7 @@ export default function AuthCallbackPage() {
         };
 
         handleCallback();
-    }, [router, searchParams]);
+    }, [router]);
 
     if (error) {
         return (
@@ -84,5 +82,20 @@ export default function AuthCallbackPage() {
                 <p className="text-muted mt-4">Signing you in...</p>
             </div>
         </div>
+    );
+}
+
+export default function AuthCallbackPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center px-6">
+                <div className="card max-w-md w-full text-center">
+                    <Loader2 className="w-8 h-8 text-cta animate-spin mx-auto" />
+                    <p className="text-muted mt-4">Loading...</p>
+                </div>
+            </div>
+        }>
+            <AuthCallbackContent />
+        </Suspense>
     );
 }
