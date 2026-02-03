@@ -3,8 +3,8 @@ import type { NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 // Homepage (/) is the login page - always public
-// All other routes require authentication
-const PUBLIC_ROUTES = ["/"];
+// /auth/callback handles magic link tokens
+const PUBLIC_ROUTES = ["/", "/auth/callback"];
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
