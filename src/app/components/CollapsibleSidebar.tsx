@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { CheckSquare, MessageSquare, FileText, LogOut } from "lucide-react";
 import { AgentStatusWidget } from "./AgentStatusWidget";
+import { getSupabaseClient } from "@/lib/supabase/client";
 
 const navItems = [
     { path: "/tasks", label: "Tasks", icon: CheckSquare },
@@ -13,6 +14,7 @@ const navItems = [
 
 export function CollapsibleSidebar() {
     const pathname = usePathname();
+    const router = useRouter();
 
     // Determine current workspace base
     const getWorkspaceBase = () => {
@@ -22,6 +24,24 @@ export function CollapsibleSidebar() {
     };
 
     const workspaceBase = getWorkspaceBase();
+
+    const handleSignOut = async () => {
+        try {
+            const supabase = getSupabaseClient();
+            await supabase.auth.signOut();
+            // Clear any remaining auth cookies
+            document.cookie.split(";").forEach((c) => {
+                const name = c.split("=")[0].trim();
+                if (name.includes("supabase") || name.includes("sb-")) {
+                    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+                }
+            });
+            router.push("/");
+        } catch (error) {
+            console.error("Sign out error:", error);
+            router.push("/");
+        }
+    };
 
     return (
         <aside
@@ -54,13 +74,13 @@ export function CollapsibleSidebar() {
             </nav>
 
             <div className="mt-auto pb-4 flex flex-col items-center">
-                <Link
-                    href="/"
-                    className="sidebar-link justify-center px-2 text-muted hover:text-red-400"
+                <button
+                    onClick={handleSignOut}
+                    className="sidebar-link justify-center px-2 text-muted hover:text-red-400 cursor-pointer"
                     title="Sign out"
                 >
                     <LogOut className="w-5 h-5" />
-                </Link>
+                </button>
             </div>
         </aside>
     );
