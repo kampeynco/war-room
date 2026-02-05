@@ -1,8 +1,7 @@
-import { listTasks } from "@/lib/db/warroom";
-import { TasksScreen } from "@/app/components/TasksScreen";
+import TasksScreen from '@/app/components/TasksScreen'
+import readTasks from '@/lib/tasks/md'
 
-export default async function KampeynTasksPage() {
-    const tasks = await listTasks("kampeyn");
-
-    return <TasksScreen project="kampeyn" title="Kampeyn Tasks" tasks={tasks} />;
+export default async function Page() {
+  const tasks = readTasks().filter(t => t && t.status !== undefined);
+  return <TasksScreen project="kampeyn" title="Kampeyn Tasks" tasks={tasks} />;
 }
