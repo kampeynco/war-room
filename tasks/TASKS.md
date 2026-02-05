@@ -15,29 +15,3 @@ created_at: 2026-02-05T09:40:00Z
 updated_at: 2026-02-05T09:40:00Z
 linked_memories: []
 ---
-
----
-# Example task
-id: task-0002
-title: Schedule donor call
-description: Propose 2 slots for top supporter
-priority: medium
-status: todo
-owner: Lenox
-created_at: 2026-02-05T09:40:00Z
-updated_at: 2026-02-05T09:40:00Z
-linked_memories: []
----
-
----
-# Example task
-id: task-0003
-title: Prepare FEC contributions draft
-description: Pull latest contributions data and draft 2-page summary
-priority: high
-status: todo
-owner: Lenox
-created_at: 2026-02-05T09:40:00Z
-updated_at: 2026-02-05T09:40:00Z
-linked_memories: []
----
